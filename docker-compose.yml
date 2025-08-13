@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: jma_knowledge_base
+      POSTGRES_USER: jma_user
+      POSTGRES_PASSWORD: jma_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jma_user -d jma_knowledge_base"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://jma_user:jma_password@postgres:5432/jma_knowledge_base
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      SECRET_KEY: ${SECRET_KEY}
+    volumes:
+      - ./backend:/app/backend
+      - ./data:/app/data
+      - ./templates:/app/templates
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
