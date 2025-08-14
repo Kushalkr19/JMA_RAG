@@ -1,0 +1,6 @@
+psycopg2-binary
+pgvector
+sentence-transformers
+transformers
+accelerate
+python-docx
